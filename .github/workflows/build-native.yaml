@@ -1,0 +1,70 @@
+name: 'Test build'
+
+on:
+  push:
+
+jobs:
+  iOS:
+    runs-on: [macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Prepare node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.node-version'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Install Pods
+        run: |
+          cd ios
+          pod install
+          cd -
+
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7.6'
+
+      - name: Build ios
+        run: |
+          xcodebuild -workspace ios/UserXIntegrate.xcworkspace -scheme UserXIntegrate -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build
+
+  Android:
+    runs-on: [ubuntu-latest]
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Prepare node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.node-version'
+
+      - name: Set up our JDK environment # setup JDK environment: mandatory as we need to build  android project
+        uses: actions/setup-java@v3.11.0
+        with:
+          java-version: 11
+          distribution: 'zulu'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Make Gradlew Executable
+        run: cd android && chmod +x ./gradlew
+
+      - name: Generate App APK
+        run: |
+          cd android && ./gradlew assembleRelease --no-daemon
