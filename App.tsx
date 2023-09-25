@@ -25,7 +25,8 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-let UserX = require('react-native-userx');
+const UserX = require('react-native-userx').default;
+console.log(UserX.start);
 UserX.start('YOUR_API_KEY');
 
 type SectionProps = PropsWithChildren<{
